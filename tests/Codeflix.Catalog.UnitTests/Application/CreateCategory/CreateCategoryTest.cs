@@ -19,16 +19,15 @@ namespace Codeflix.Catalog.UnitTests.Application.CreateCategory
             _fixture = fixture;
         }
 
-        [Fact(DisplayName = nameof(CreateCategory))]
+        [Theory(DisplayName = nameof(CreateCategory))]
         [Trait("Application", "CreateCategory - Use Cases")]
-        public async Task CreateCategory()
+        [MemberData(nameof(GetCategoriesToCreate))]
+        public async Task CreateCategory(CreateCategoryInput input)
         {
             var repositoryMock = _fixture.GetRepositoryMock();
             var unitOfWorkMock = _fixture.GetUnitOfWorkMock();
 
             var useCase = new UseCases.CreateCategory(repositoryMock.Object, unitOfWorkMock.Object);
-
-            var input = _fixture.GetInput();
 
             var output = await useCase.Handle(input, CancellationToken.None);
 
@@ -36,7 +35,7 @@ namespace Codeflix.Catalog.UnitTests.Application.CreateCategory
                 repository => repository.Insert(
                     It.IsAny<Category>(),
                     It.IsAny<CancellationToken>()
-                    ), 
+                    ),
                 Times.Once
             );
 
@@ -51,6 +50,18 @@ namespace Codeflix.Catalog.UnitTests.Application.CreateCategory
             output.IsActive.Should().Be(input.IsActive);
             output.Id.Should().NotBeEmpty();
             output.CreatedAt.Should().NotBeSameDateAs(default(DateTime));
+        }
+
+        private static IEnumerable<object[]> GetCategoriesToCreate()
+        {
+            var fixture = new CreateCategoryTestFixture();
+
+            return new List<object[]>
+            {
+                new object[] { fixture.GetInput() },
+                new object[] { new CreateCategoryInput(fixture.GetValidCategoryName()) },
+                new object[] { new CreateCategoryInput(fixture.GetValidCategoryName(), fixture.GetValidCategoryDescription()) }
+            };
         }
 
         [Theory(DisplayName = nameof(ThrowWhenCantInstantiateAggregate))]
@@ -107,74 +118,6 @@ namespace Codeflix.Catalog.UnitTests.Application.CreateCategory
             });
 
             return invalidInputsList;
-        }
-
-        [Fact(DisplayName = nameof(CreateCategoryWithOnlyName))]
-        [Trait("Application", "CreateCategory - Use Cases")]
-        public async Task CreateCategoryWithOnlyName()
-        {
-            var repositoryMock = _fixture.GetRepositoryMock();
-            var unitOfWorkMock = _fixture.GetUnitOfWorkMock();
-
-            var useCase = new UseCases.CreateCategory(repositoryMock.Object, unitOfWorkMock.Object);
-           
-            var input = new CreateCategoryInput(_fixture.GetValidCategoryName());
-
-            var output = await useCase.Handle(input, CancellationToken.None);
-
-            repositoryMock.Verify(
-                repository => repository.Insert(
-                    It.IsAny<Category>(),
-                    It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
-
-            unitOfWorkMock.Verify(
-                uow => uow.Commit(It.IsAny<CancellationToken>()),
-                Times.Once
-            );
-
-            output.Should().NotBeNull();
-            output.Name.Should().Be(input.Name);
-            output.Description.Should().Be("");
-            output.IsActive.Should().BeTrue();
-            output.Id.Should().NotBeEmpty();
-            output.CreatedAt.Should().NotBeSameDateAs(default(DateTime));
-        }
-
-        [Fact(DisplayName = nameof(CreateCategoryWithOnlyNameAndDescription))]
-        [Trait("Application", "CreateCategory - Use Cases")]
-        public async Task CreateCategoryWithOnlyNameAndDescription()
-        {
-            var repositoryMock = _fixture.GetRepositoryMock();
-            var unitOfWorkMock = _fixture.GetUnitOfWorkMock();
-
-            var useCase = new UseCases.CreateCategory(repositoryMock.Object, unitOfWorkMock.Object);
-
-            var input = new CreateCategoryInput(_fixture.GetValidCategoryName(), _fixture.GetValidCategoryDescription());
-
-            var output = await useCase.Handle(input, CancellationToken.None);
-
-            repositoryMock.Verify(
-                repository => repository.Insert(
-                    It.IsAny<Category>(),
-                    It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
-
-            unitOfWorkMock.Verify(
-                uow => uow.Commit(It.IsAny<CancellationToken>()),
-                Times.Once
-            );
-
-            output.Should().NotBeNull();
-            output.Name.Should().Be(input.Name);
-            output.Description.Should().Be(input.Description);         
-            output.IsActive.Should().BeTrue();
-            output.Id.Should().NotBeEmpty();
-            output.CreatedAt.Should().NotBeSameDateAs(default(DateTime));
         }
     }
 }
