@@ -45,11 +45,42 @@ namespace Codeflix.Catalog.UnitTests.Application.CreateCategory
                 getRandomBoolean()
             );
 
+        public CreateCategoryInput GetInvalidInputShortName()
+        {
+            var invalidInputShortName = GetInput();
+            invalidInputShortName.Name = invalidInputShortName.Name.Substring(0, 2);
+            return invalidInputShortName;            
+        }
+
+        public CreateCategoryInput GetInvalidInputTooLongName()
+        {
+            var invalidInputTooLongName = GetInput();
+            invalidInputTooLongName.Name = Faker.Commerce.ProductName();
+            while (invalidInputTooLongName.Name.Length <= 255)
+                invalidInputTooLongName.Name = $"{invalidInputTooLongName.Name} {Faker.Commerce.ProductName()}";
+            return invalidInputTooLongName;           
+        }
+
+        public CreateCategoryInput GetInvalidInputTooLongDescription()
+        {
+            var invalidInputTooLongDescription = GetInput();
+            invalidInputTooLongDescription.Description = Faker.Commerce.ProductDescription();
+            while (invalidInputTooLongDescription.Description.Length <= 10000)
+                invalidInputTooLongDescription.Description = $"{invalidInputTooLongDescription.Description} {Faker.Commerce.ProductDescription()}";
+            return invalidInputTooLongDescription;
+        }
+
+        public CreateCategoryInput GetInvalidInputNullDescription()
+        {
+            var invalidInputNullDescription = GetInput();
+            invalidInputNullDescription.Description = null!;
+            return invalidInputNullDescription;
+        }
+
         public Mock<ICategoryRepository> GetRepositoryMock()
             => new Mock<ICategoryRepository>();
 
         public Mock<IUnitOfWork> GetUnitOfWorkMock() 
-            => new Mock<IUnitOfWork>();        
-
+            => new Mock<IUnitOfWork>();       
     }
 }
